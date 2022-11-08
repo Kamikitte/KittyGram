@@ -54,6 +54,8 @@ internal class Program
 
 		builder.Services.AddAutoMapper(typeof(MapperProile).Assembly);
 		builder.Services.AddScoped<UserService>();
+		builder.Services.AddTransient<AttachService>();
+		builder.Services.AddTransient<PostService>();
 
 		builder.Services.AddAuthentication(o =>	
 		{
@@ -83,7 +85,7 @@ internal class Program
 			});
 		});
 
-		builder.Services.AddDbContext<DAL.DataContext>(options =>
+		builder.Services.AddDbContext<DataContext>(options =>
 		{
 			options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"), sql => { });
 		});
@@ -94,7 +96,7 @@ internal class Program
 		{
 			if(serviceScope != null)
 			{
-				var context = serviceScope.ServiceProvider.GetRequiredService<DAL.DataContext>();
+				var context = serviceScope.ServiceProvider.GetRequiredService<DataContext>();
 				context.Database.Migrate();
 			}
 		}

@@ -14,7 +14,13 @@ namespace Api
 
 			CreateMap<DAL.Entities.User, Models.UserModel>();
 
+			CreateMap<DAL.Entities.Attach, Models.AttachModel>();
+
 			CreateMap<DAL.Entities.Avatar, Models.AttachModel>();
+
+			CreateMap<DAL.Entities.Post, Models.PostModel>();
+
+			CreateMap<DAL.Entities.PostAttach, Models.AttachModel>();
 		}
 	}
 }

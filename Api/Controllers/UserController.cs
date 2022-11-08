@@ -10,9 +10,11 @@ namespace Api.Controllers
 	public class UserController : ControllerBase
 	{
 		private readonly UserService _userService;
-		public UserController(UserService userService)
+		private readonly AttachService _attachService;
+		public UserController(UserService userService, AttachService attachService)
 		{
 			_userService = userService;
+			_attachService = attachService;
 		}
 
 		[HttpPost]
@@ -30,20 +32,10 @@ namespace Api.Controllers
 			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
 			if (Guid.TryParse(userIdString, out var userId))
 			{
-				var tempFI = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
-				if(!tempFI.Exists)
-				{
-					throw new Exception("file not found");
-				}
-				else
-				{
-					var path = Path.Combine(Directory.GetCurrentDirectory(), "Attaches", model.TempId.ToString());
-					var destFI = new FileInfo(path);
-					if(destFI.Directory != null && !destFI.Directory.Exists)
-						destFI.Directory.Create();
-					System.IO.File.Copy(tempFI.FullName, path, true);
-					await _userService.AddAvatarToUser(userId, model, path);
-				}
+				var path = _attachService.SaveMetaToAttaches(model);
+
+				await _userService.AddAvatarToUser(userId, model, path);
+				
 			}
 			else
 				throw new Exception("you are not authorized");
