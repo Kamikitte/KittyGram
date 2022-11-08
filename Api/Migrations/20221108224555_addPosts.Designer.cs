@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221108093535_addPosts")]
+    [Migration("20221108224555_addPosts")]
     partial class addPosts
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,37 @@ namespace Api.Migrations
                     b.ToTable("Attaches");
                 });
 
+            modelBuilder.Entity("DAL.Entities.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatingDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+                });
+
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
                     b.Property<Guid>("Id")
@@ -63,6 +94,9 @@ namespace Api.Migrations
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatingDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -75,9 +109,6 @@ namespace Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("AvatarId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("BirthDate")
@@ -96,9 +127,6 @@ namespace Api.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AvatarId")
-                        .IsUnique();
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -135,6 +163,12 @@ namespace Api.Migrations
                 {
                     b.HasBaseType("DAL.Entities.Attach");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.HasIndex("OwnerId")
+                        .IsUnique();
+
                     b.ToTable("Avatars", (string)null);
                 });
 
@@ -161,6 +195,19 @@ namespace Api.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("DAL.Entities.Comment", b =>
+                {
+                    b.HasOne("DAL.Entities.Post", null)
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DAL.Entities.User", null)
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId");
+                });
+
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
                     b.HasOne("DAL.Entities.User", "Author")
@@ -170,15 +217,6 @@ namespace Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
-                });
-
-            modelBuilder.Entity("DAL.Entities.User", b =>
-                {
-                    b.HasOne("DAL.Entities.Avatar", "Avatar")
-                        .WithOne("User")
-                        .HasForeignKey("DAL.Entities.User", "AvatarId");
-
-                    b.Navigation("Avatar");
                 });
 
             modelBuilder.Entity("DAL.Entities.UserSession", b =>
@@ -199,6 +237,14 @@ namespace Api.Migrations
                         .HasForeignKey("DAL.Entities.Avatar", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DAL.Entities.User", "Owner")
+                        .WithOne("Avatar")
+                        .HasForeignKey("DAL.Entities.Avatar", "OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("DAL.Entities.PostAttach", b =>
@@ -221,19 +267,19 @@ namespace Api.Migrations
             modelBuilder.Entity("DAL.Entities.Post", b =>
                 {
                     b.Navigation("Attaches");
+
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("DAL.Entities.User", b =>
                 {
+                    b.Navigation("Avatar");
+
+                    b.Navigation("Comments");
+
                     b.Navigation("Posts");
 
                     b.Navigation("Sessions");
-                });
-
-            modelBuilder.Entity("DAL.Entities.Avatar", b =>
-                {
-                    b.Navigation("User")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

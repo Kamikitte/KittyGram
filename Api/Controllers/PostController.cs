@@ -39,8 +39,27 @@ namespace Api.Controllers
 		[HttpGet]
 		public async Task<FileResult> GetContent(Guid contentId)
 		{
-			var content = await _postService.GetContent(contentId);
+			var content = _postService.GetContent(contentId);
 			return File(System.IO.File.ReadAllBytes(content.FilePath), content.MimeType);
 		}
+		[HttpPost]
+		public async Task AddComment(CreateCommentRequest request)
+		{
+			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+			if (Guid.TryParse(userIdString, out var userId))
+			{
+				var model = new CreateCommentModel
+				{
+					AuthorId = userId,
+					PostId = request.PostId,
+					Text = request.Text
+				};
+				await _postService.AddComment(model);
+			}
+			else
+				throw new Exception("you are not authorized");
+		}
+		[HttpGet]
+		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) => _postService.GetCommentsFromPost(postId);
 	}
 }

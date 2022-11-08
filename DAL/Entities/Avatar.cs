@@ -2,6 +2,7 @@
 {
 	public class Avatar : Attach
 	{
-		public virtual User User { get; set; } = null!;
+		public Guid OwnerId { get; set; }
+		public virtual User Owner { get; set; } = null!;
 	}
 }

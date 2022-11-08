@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common;
+using DAL.Entities;
 
 namespace Api
 {
@@ -21,6 +22,12 @@ namespace Api
 			CreateMap<DAL.Entities.Post, Models.PostModel>();
 
 			CreateMap<DAL.Entities.PostAttach, Models.AttachModel>();
+
+			CreateMap<Models.CreateCommentModel, DAL.Entities.Comment>()
+				.ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
+				.ForMember(d => d.CreatingDate, m => m.MapFrom(s => DateTime.UtcNow));
+
+			CreateMap<DAL.Entities.Comment, Models.CommentModel>();
 		}
 	}
 }

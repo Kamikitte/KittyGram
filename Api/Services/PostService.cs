@@ -1,8 +1,10 @@
-﻿using Api.Models;
+﻿using Api.Migrations;
+using Api.Models;
 using AutoMapper;
 using DAL;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace Api.Services
 {
@@ -34,10 +36,10 @@ namespace Api.Services
 			{
 				Id = Guid.NewGuid(),
 				Author = user,
-				Attaches = new List<PostAttach>()				
+				CreatingDate = DateTime.UtcNow,
+				Attaches = new List<PostAttach>()			
 			};
 			await _context.Posts.AddAsync(post);
-			await _context.SaveChangesAsync();
 			foreach (var meta in metaAttaches)
 			{
 				var path = _attachService.SaveMetaToAttaches(meta);
@@ -57,7 +59,7 @@ namespace Api.Services
 			return post.Id;
 		}
 
-		public async Task<AttachModel> GetContent(Guid contentId)
+		public AttachModel GetContent(Guid contentId)
 		{
 			var dbAttach = _context.Attaches.FirstOrDefault(x => x.Id == contentId);
 			return _mapper.Map<AttachModel>(dbAttach);
@@ -81,6 +83,18 @@ namespace Api.Services
 					new AttachWithLinkModel(_mapper.Map<AttachModel>(x), _linkContentGenerator)).ToList()
 			};
 			return result;
+		}
+		public async Task AddComment(CreateCommentModel model)
+		{
+			var comment = _mapper.Map<Comment>(model);
+			await _context.Comments.AddAsync(comment);
+			await _context.SaveChangesAsync();
+		}
+		public List<CommentModel> GetCommentsFromPost(Guid postId)
+		{
+			var dbComments = _context.Comments.Where(x => x.PostId == postId).ToList();
+			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>> (dbComments);
+			return commentsList;
 		}
 	}
 }

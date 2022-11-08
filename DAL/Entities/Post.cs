@@ -5,5 +5,7 @@
 		public Guid Id { get; set; }
 		public virtual ICollection<PostAttach> Attaches { get; set; } = null!;
 		public virtual User Author { get; set; } = null!;
+		public DateTimeOffset CreatingDate { get; set; }
+		public virtual ICollection<Comment> Comments { get; set; }
 	}
 }
