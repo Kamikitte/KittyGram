@@ -26,8 +26,6 @@ namespace Common
 			var hashImput = GetHash(input);
 			var comparer = StringComparer.OrdinalIgnoreCase;
 			return comparer.Compare(hashImput, hash) == 0;
-
-			List<char> hehe = new List<char>();
 		}
 	}
 }

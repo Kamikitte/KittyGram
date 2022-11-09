@@ -7,6 +7,7 @@ namespace Api.Controllers
 {
 	[Route("api/[controller]/[action]")]
 	[ApiController]
+	[Authorize]
 	public class UserController : ControllerBase
 	{
 		private readonly UserService _userService;
@@ -18,15 +19,6 @@ namespace Api.Controllers
 		}
 
 		[HttpPost]
-		public async Task CreateUser(CreateUserModel model)
-		{
-			if (await _userService.CheckUserExist(model.Email))
-				throw new Exception("user is exist");
-			await _userService.CreateUser(model);
-		}
-
-		[HttpPost]
-		[Authorize]
 		public async Task AddAvatarToUser(MetadataModel model)
 		{
 			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -63,11 +55,9 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		[Authorize]
 		public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
 
 		[HttpGet]
-		[Authorize]
 		public async Task<UserModel> GetCurrentUser()
 		{
 			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;

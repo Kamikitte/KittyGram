@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DAL;
+using Api.Middlewares;
 
 internal class Program
 {
@@ -54,6 +55,7 @@ internal class Program
 
 		builder.Services.AddAutoMapper(typeof(MapperProile).Assembly);
 		builder.Services.AddScoped<UserService>();
+		builder.Services.AddScoped<AuthService>();
 		builder.Services.AddTransient<AttachService>();
 		builder.Services.AddTransient<PostService>();
 
