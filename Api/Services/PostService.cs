@@ -27,20 +27,18 @@ namespace Api.Services
 			_linkContentGenerator = linkContentGenerator;
 		}
 
-		public async Task<Guid> CreatePost(Guid userId, List<MetadataModel> metaAttaches)
+		public async Task<Guid> CreatePost(CreatePostModel model)
 		{
-			var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
-			if (user == null)
-				throw new Exception("user not found");
 			var post = new Post
 			{
 				Id = Guid.NewGuid(),
-				Author = user,
+				AuthorId = model.AuthorId,
+				Description = model.Description,
 				CreatingDate = DateTime.UtcNow,
 				Attaches = new List<PostAttach>()			
 			};
 			await _context.Posts.AddAsync(post);
-			foreach (var meta in metaAttaches)
+			foreach (var meta in model.Attaches)
 			{
 				var path = _attachService.SaveMetaToAttaches(meta);
 				var postAttach = new PostAttach
@@ -50,7 +48,7 @@ namespace Api.Services
 					MimeType = meta.MimeType,
 					FilePath = path,
 					Size = meta.Size,
-					Author = user,
+					AuthorId = model.AuthorId,
 					PostId = post.Id
 				};
 				await _context.PostAttaches.AddAsync(postAttach);
@@ -79,6 +77,7 @@ namespace Api.Services
 			{
 				Author = _mapper.Map<UserModel>(post.Author),
 				Id = post.Id,
+				Description = post.Description,
 				Attaches = post.Attaches.Select(x =>
 					new AttachWithLinkModel(_mapper.Map<AttachModel>(x), _linkContentGenerator)).ToList()
 			};
