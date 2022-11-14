@@ -11,7 +11,12 @@ namespace Api.Services
 	{
 		private readonly IMapper _mapper;
 		private readonly DataContext _context;
-		public UserService(IMapper mapper, DataContext context, AuthService authService)
+		private Func<UserModel, string?>? _linkGenerator;
+		public void SetLinkGenerator(Func<UserModel, string?> linkGenerator)
+		{
+			_linkGenerator = linkGenerator;
+		}
+		public UserService(IMapper mapper, DataContext context)
 		{
 			_mapper = mapper;
 			_context = context;
@@ -73,16 +78,17 @@ namespace Api.Services
 			
 			return user;
 		}
-		
-		public async Task<UserModel> GetUser(Guid id)
+
+		public async Task<UserAvatarModel> GetUser(Guid id)
 		{
 			var user = await GetUserById(id);
-			return _mapper.Map<UserModel>(user);
+			return new UserAvatarModel(_mapper.Map<UserModel>(user), _linkGenerator);
 		}
 		
-		public async Task<List<UserModel>> GetUsers()
+		public async Task<IEnumerable<UserAvatarModel>> GetUsers()
 		{
-			return await _context.Users.AsNoTracking().ProjectTo<UserModel>(_mapper.ConfigurationProvider).ToListAsync();
+			var users = await _context.Users.AsNoTracking().ProjectTo<UserModel>(_mapper.ConfigurationProvider).ToListAsync();
+			return users.Select(x => new UserAvatarModel(x, _linkGenerator));
 		}
 	}
 }

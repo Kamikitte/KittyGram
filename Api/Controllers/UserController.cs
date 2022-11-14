@@ -1,5 +1,7 @@
-﻿using Api.Models;
+﻿using Api.Consts;
+using Api.Models;
 using Api.Services;
+using Common.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +18,16 @@ namespace Api.Controllers
 		{
 			_userService = userService;
 			_attachService = attachService;
+			if (userService != null)
+				_userService.SetLinkGenerator(x =>
+				Url.Action(nameof(GetUserAvatar), new { userId = x.Id, download = false }));
 		}
 
 		[HttpPost]
 		public async Task AddAvatarToUser(MetadataModel model)
 		{
-			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-			if (Guid.TryParse(userIdString, out var userId))
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId != default)
 			{
 				var path = _attachService.SaveMetaToAttaches(model);
 
@@ -34,34 +39,35 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		public async Task<FileResult> GetUserAvatar(Guid userId)
+		public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download = false)
 		{
 			
 			var attach = await _userService.GetUserAvatar(userId);
-
-			return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
+			var fs = new FileStream(attach.FilePath, FileMode.Open);
+			if (download)
+				return File(fs, attach.MimeType, attach.Name);
+			else
+				return File(fs, attach.MimeType);
 		}
 
 		[HttpGet]
-		public async Task<FileResult> DownloadAvatar(Guid userId)
+		public async Task<FileStreamResult> GetCurrentUerAvatar(bool download = false)
 		{
-			var attach = await _userService.GetUserAvatar(userId);
-			HttpContext.Response.ContentType = attach.MimeType;
-			FileContentResult result = new FileContentResult(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType)
-			{
-				FileDownloadName = attach.Name
-			};
-			return result;
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId != default)
+				return await GetUserAvatar(userId, download);		
+            else
+                throw new Exception("you are not authorized");
 		}
 
 		[HttpGet]
-		public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();
+		public async Task<IEnumerable<UserAvatarModel>> GetUsers() => await _userService.GetUsers();
 
 		[HttpGet]
-		public async Task<UserModel> GetCurrentUser()
+		public async Task<UserAvatarModel> GetCurrentUser()
 		{
-			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-			if (Guid.TryParse(userIdString, out var userId))
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId != default)
 			{
 				return await _userService.GetUser(userId);
 			}
