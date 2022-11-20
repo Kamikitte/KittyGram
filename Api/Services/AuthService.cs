@@ -1,6 +1,6 @@
 ﻿using Api.Configs;
 using Api.Consts;
-using Api.Models;
+using Api.Models.Token;
 using AutoMapper;
 using Common;
 using DAL;
@@ -13,7 +13,7 @@ using System.Security.Claims;
 
 namespace Api.Services
 {
-	public class AuthService
+    public class AuthService
 	{
 		private readonly IMapper _mapper;
 		private readonly DAL.DataContext _context;

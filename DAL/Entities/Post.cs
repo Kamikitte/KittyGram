@@ -3,7 +3,7 @@
 	public class Post
 	{
 		public Guid Id { get; set; }
-		public virtual ICollection<PostAttach> Attaches { get; set; } = null!;
+		public virtual ICollection<PostContent> PostContents { get; set; } = null!;
 		public Guid AuthorId { get; set; }
 		public string? Description { get; set; }
 		public DateTimeOffset CreatingDate { get; set; }

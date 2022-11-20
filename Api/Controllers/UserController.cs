@@ -1,5 +1,6 @@
 ﻿using Api.Consts;
-using Api.Models;
+using Api.Models.Attach;
+using Api.Models.User;
 using Api.Services;
 using Common.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-	[Route("api/[controller]/[action]")]
+    [Route("api/[controller]/[action]")]
 	[ApiController]
 	[Authorize]
 	public class UserController : ControllerBase
@@ -51,7 +52,7 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		public async Task<FileStreamResult> GetCurrentUerAvatar(bool download = false)
+		public async Task<FileStreamResult> GetCurrentUserAvatar(bool download = false)
 		{
 			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
 			if (userId != default)

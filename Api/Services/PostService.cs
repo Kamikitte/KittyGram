@@ -1,73 +1,44 @@
-﻿using Api.Migrations;
-using Api.Models;
+﻿using Api.Models.Attach;
+using Api.Models.Comment;
+using Api.Models.Post;
+using Api.Models.User;
 using AutoMapper;
 using DAL;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 namespace Api.Services
 {
 	public class PostService
 	{
 		private readonly DataContext _context;
-		private readonly UserService _userService;
-		private readonly AttachService _attachService;
 		private Func<AttachModel, string?>? _linkContentGenerator;
+		private Func<UserModel, string?>? _linkAvatarGenerator;
 		private readonly IMapper _mapper;
-		public PostService(DataContext context, UserService userService, IMapper mapper, AttachService attachService)
+		public PostService(DataContext context, IMapper mapper)
 		{
 			_context = context;
-			_userService = userService;
-			_attachService = attachService;
 			_mapper = mapper;
 		}
-		public void SetLinkGenerator(Func<AttachModel, string?> linkContentGenerator)
+		public void SetLinkGenerator(Func<AttachModel, string?> linkContentGenerator, Func<UserModel, string?> linkAvatarGenerator)
 		{
 			_linkContentGenerator = linkContentGenerator;
+			_linkAvatarGenerator = linkAvatarGenerator;
 		}
 
-		public async Task<Guid> CreatePost(CreatePostModel model)
+		public async Task CreatePost(CreatePostModel model)
 		{
-			var post = new Post
-			{
-				Id = Guid.NewGuid(),
-				AuthorId = model.AuthorId,
-				Description = model.Description,
-				CreatingDate = DateTime.UtcNow,
-				Attaches = new List<PostAttach>()			
-			};
-			await _context.Posts.AddAsync(post);
-			foreach (var meta in model.Attaches)
-			{
-				var path = _attachService.SaveMetaToAttaches(meta);
-				var postAttach = new PostAttach
-				{
-					Id = Guid.NewGuid(),
-					Name = meta.Name,
-					MimeType = meta.MimeType,
-					FilePath = path,
-					Size = meta.Size,
-					AuthorId = model.AuthorId,
-					PostId = post.Id
-				};
-				await _context.PostAttaches.AddAsync(postAttach);
-			}
+			var dbModel = _mapper.Map<Post>(model);
+
+			await _context.Posts.AddAsync(dbModel);
 			await _context.SaveChangesAsync();
-			return post.Id;
 		}
-
-		public AttachModel GetContent(Guid contentId)
-		{
-			var dbAttach = _context.Attaches.FirstOrDefault(x => x.Id == contentId);
-			return _mapper.Map<AttachModel>(dbAttach);
-		}
-
 		public async Task<PostModel> GetPost(Guid postId)
 		{
 			var post = await _context.Posts
-				.Include(x=>x.Attaches)
-				.Include(x=>x.Author)
+				.AsNoTracking()
+				.Include(x => x.PostContents)
+				.Include(x => x.Author).ThenInclude(x=>x.Avatar)
 				.FirstOrDefaultAsync(x => x.Id == postId);
 			if (post == null)
 			{
@@ -75,13 +46,39 @@ namespace Api.Services
 			}
 			var result = new PostModel
 			{
-				Author = _mapper.Map<UserModel>(post.Author),
+				Author = new UserAvatarModel(_mapper.Map<UserModel>(post.Author), post.Author.Avatar == null ? null : _linkAvatarGenerator),
 				Id = post.Id,
 				Description = post.Description,
-				Attaches = post.Attaches.Select(x =>
+				Contents = post.PostContents.Select(x =>
 					new AttachWithLinkModel(_mapper.Map<AttachModel>(x), _linkContentGenerator)).ToList()
 			};
 			return result;
+		}
+		public async Task<List<PostModel>> GetPosts(int skip, int take)
+		{
+			var posts = await _context.Posts
+				.AsNoTracking()
+				.Include(x => x.PostContents)
+				.Include(x => x.Author).ThenInclude(x=> x.Avatar)
+				.Take(take)
+				.Skip(skip)
+				.ToListAsync();
+			var result = posts.Select(post =>			
+				new PostModel
+				{
+					Author = new UserAvatarModel(_mapper.Map<UserModel>(post.Author), post.Author.Avatar==null?null:_linkAvatarGenerator),
+					Description = post.Description,
+					Id = post.Id,
+					Contents = post.PostContents.Select(x => 
+						new AttachWithLinkModel(_mapper.Map<AttachModel>(x), _linkContentGenerator)).ToList()
+				}).ToList();
+			
+			return result;
+		}				
+		public async Task<AttachModel> GetPostContent(Guid postContentId)
+		{
+			var result = await _context.PostContents.FirstOrDefaultAsync(x => x.Id == postContentId);
+			return _mapper.Map<AttachModel>(result);
 		}
 		public async Task AddComment(CreateCommentModel model)
 		{
@@ -89,9 +86,9 @@ namespace Api.Services
 			await _context.Comments.AddAsync(comment);
 			await _context.SaveChangesAsync();
 		}
-		public List<CommentModel> GetCommentsFromPost(Guid postId)
+		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId)
 		{
-			var dbComments = _context.Comments.Where(x => x.PostId == postId).ToList();
+			var dbComments = await _context.Comments.Where(x => x.PostId == postId).ToListAsync();
 			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>> (dbComments);
 			return commentsList;
 		}

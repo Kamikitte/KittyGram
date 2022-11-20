@@ -1,10 +1,10 @@
-﻿using Api.Models;
+﻿using Api.Models.Attach;
 using Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-	[Route("api/[controller]/[action]")]
+    [Route("api/[controller]/[action]")]
 	[ApiController]
 	public class AttachController : ControllerBase
 	{

@@ -1,33 +1,40 @@
-﻿using AutoMapper;
+﻿using Api.Models.Attach;
+using Api.Models.Comment;
+using Api.Models.Post;
+using Api.Models.User;
+using AutoMapper;
 using Common;
-using DAL.Entities;
 
 namespace Api
 {
-	public class MapperProile : Profile
+    public class MapperProile : Profile
 	{
 		public MapperProile()
 		{
-			CreateMap<Models.CreateUserModel, DAL.Entities.User>()
+			CreateMap<CreateUserModel, DAL.Entities.User>()
 				.ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
 				.ForMember(d => d.PasswordHash, m => m.MapFrom(s => HashHelper.GetHash(s.Password)))
 				.ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDate.UtcDateTime));
 
-			CreateMap<DAL.Entities.User, Models.UserModel>();
+			CreateMap<DAL.Entities.User, UserModel>();
 
-			CreateMap<DAL.Entities.Attach, Models.AttachModel>();
+			CreateMap<DAL.Entities.Avatar, AttachModel>();
 
-			CreateMap<DAL.Entities.Avatar, Models.AttachModel>();
+			CreateMap<DAL.Entities.PostContent, AttachModel>();
 
-			CreateMap<DAL.Entities.Post, Models.PostModel>();
+			CreateMap<MetadataModel, DAL.Entities.PostContent>();
 
-			CreateMap<DAL.Entities.PostAttach, Models.AttachModel>();
+			CreateMap<MetaWithPath, DAL.Entities.PostContent>();
 
-			CreateMap<Models.CreateCommentModel, DAL.Entities.Comment>()
+			CreateMap<CreatePostModel, DAL.Entities.Post>()
+				.ForMember(d => d.PostContents, m => m.MapFrom(s => s.Contents))
+				.ForMember(d => d.CreatingDate, m => m.MapFrom(s => DateTime.UtcNow));
+
+			CreateMap<CreateCommentModel, DAL.Entities.Comment>()
 				.ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
 				.ForMember(d => d.CreatingDate, m => m.MapFrom(s => DateTime.UtcNow));
 
-			CreateMap<DAL.Entities.Comment, Models.CommentModel>();
+			CreateMap<DAL.Entities.Comment, CommentModel>();
 		}
 	}
 }
