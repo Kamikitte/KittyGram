@@ -1,6 +1,4 @@
-﻿using System.Security;
-
-namespace DAL.Entities
+﻿namespace DAL.Entities
 {
 	public class Attach
 	{

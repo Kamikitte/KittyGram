@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-
-namespace Api.Models.Token
+﻿namespace Api.Models.Token
 {
     public class TokenModel
     {
