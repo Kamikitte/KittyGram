@@ -2,6 +2,7 @@ using Api.Configs;
 using Api.Mapper;
 using Api.Middlewares;
 using Api.Services;
+using AspNetCoreRateLimit;
 using DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,13 @@ internal class Program
 			c.SwaggerDoc("Auth", new OpenApiInfo { Title = "Auth" });
 			c.SwaggerDoc("Api", new OpenApiInfo { Title = "Api" });
 		});
+
+		builder.Services.AddOptions();
+		builder.Services.AddMemoryCache();
+		builder.Services.Configure<ClientRateLimitOptions>(builder.Configuration.GetSection("ClientRateLimiting"));
+		builder.Services.Configure<ClientRateLimitPolicies>(builder.Configuration.GetSection("ClientRateLimitPolicies"));
+		builder.Services.AddInMemoryRateLimiting();
+		builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 		builder.Services.AddAutoMapper(typeof(MapperProile).Assembly);
 		builder.Services.AddScoped<UserService>();
@@ -117,7 +125,11 @@ internal class Program
 
 		app.UseHttpsRedirection();
 
+		app.UseAntiDoSCustom();
 		app.UseAuthentication();
+
+		app.UseClientRateLimiting();
+
 		app.UseAuthorization();
 		app.UseTokenValidator();
 		app.UseGlobalErrorWrapper();
