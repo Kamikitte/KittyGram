@@ -62,8 +62,8 @@ namespace Api.Services
 			await _context.Posts
 				.AsNoTracking()
 				.Include(x => x.PostContents)
-				.Include(x => x.Author).ThenInclude(x=> x.Avatar)
-				.OrderByDescending(x=>x.CreatingDate).Skip(skip).Take(take)
+				.Include(x => x.Author).ThenInclude(x => x.Avatar)
+				.OrderByDescending(x => x.CreatingDate).Skip(skip).Take(take)
 				.Select(x => _mapper.Map<PostModel>(x))
 				.ToListAsync();
 
@@ -81,8 +81,8 @@ namespace Api.Services
 		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId)
 		{
 			var dbComments = await _context.Comments.Where(x => x.PostId == postId).ToListAsync();
-			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>> (dbComments);
+			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>>(dbComments);
 			return commentsList;
-		}		
+		}
 	}
 }

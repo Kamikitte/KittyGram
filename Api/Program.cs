@@ -1,12 +1,12 @@
-using Api.Services;
 using Api.Configs;
-using Microsoft.EntityFrameworkCore;
+using Api.Mapper;
+using Api.Middlewares;
+using Api.Services;
+using DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DAL;
-using Api.Middlewares;
-using Api.Mapper;
 
 internal class Program
 {
@@ -20,7 +20,7 @@ internal class Program
 		builder.Services.Configure<AuthConfig>(authSection);
 
 		builder.Services.AddControllers();
-		
+
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen(c =>
 		{
@@ -61,7 +61,7 @@ internal class Program
 		builder.Services.AddTransient<AttachService>();
 		builder.Services.AddScoped<PostService>();
 
-		builder.Services.AddAuthentication(o =>	
+		builder.Services.AddAuthentication(o =>
 		{
 			o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 		}).AddJwtBearer(o =>
@@ -98,7 +98,7 @@ internal class Program
 
 		using (var serviceScope = ((IApplicationBuilder)app).ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
 		{
-			if(serviceScope != null)
+			if (serviceScope != null)
 			{
 				var context = serviceScope.ServiceProvider.GetRequiredService<DataContext>();
 				context.Database.Migrate();

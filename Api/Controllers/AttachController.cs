@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    [Route("api/[controller]/[action]")]
+	[Route("api/[controller]/[action]")]
 	[ApiController]
 	[ApiExplorerSettings(GroupName = "Api")]
 	[Authorize]
@@ -30,17 +30,17 @@ namespace Api.Controllers
 		[HttpGet]
 		[Route("{userId}")]
 		public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download = false) =>
-			RenderAttach(await _userService.GetUserAvatar(userId), download);		
+			RenderAttach(await _userService.GetUserAvatar(userId), download);
 
 		[HttpGet]
-		public async Task<FileStreamResult> GetCurrentUserAvatar(bool download = false) => 
+		public async Task<FileStreamResult> GetCurrentUserAvatar(bool download = false) =>
 			await GetUserAvatar(User.GetClaimValue<Guid>(ClaimNames.Id), download);
 
 		[HttpGet]
 		[Route("{postContentId}")]
 		public async Task<FileResult> GetPostContent(Guid postContentId, bool download = false) =>
 			RenderAttach(await _postService.GetPostContent(postContentId), download);
-		
+
 
 		private FileStreamResult RenderAttach(AttachModel attach, bool download)
 		{

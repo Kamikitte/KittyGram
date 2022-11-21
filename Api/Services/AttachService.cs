@@ -2,7 +2,7 @@
 
 namespace Api.Services
 {
-    public class AttachService
+	public class AttachService
 	{
 		private async Task<MetadataModel> UploadFile(IFormFile file)
 		{

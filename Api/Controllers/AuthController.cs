@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    [Route("api/[controller]/[action]")]
+	[Route("api/[controller]/[action]")]
 	[ApiController]
-	[ApiExplorerSettings(GroupName ="Auth")]
+	[ApiExplorerSettings(GroupName = "Auth")]
 	public class AuthController : ControllerBase
 	{
 		private readonly AuthService _authService;
@@ -27,11 +27,11 @@ namespace Api.Controllers
 		}
 
 		[HttpPost]
-		public async Task<TokenModel> Token(TokenRequestModel model) 
+		public async Task<TokenModel> Token(TokenRequestModel model)
 			=> await _authService.GetToken(model.Login, model.Password);
 
 		[HttpPost]
-		public async Task<TokenModel> RefreshToken(RefreshTokenRequestModel model) 
+		public async Task<TokenModel> RefreshToken(RefreshTokenRequestModel model)
 			=> await _authService.GetTokenByRefreshToken(model.RefreshToken);
 	}
 }

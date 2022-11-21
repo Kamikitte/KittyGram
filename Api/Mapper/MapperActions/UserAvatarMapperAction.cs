@@ -13,6 +13,6 @@ namespace Api.Mapper.MapperActions
 			_links = linkGeneratorService;
 		}
 		public void Process(User source, UserAvatarModel destination, ResolutionContext context) =>
-			_links.FixAvatar(source, destination);		
+			_links.FixAvatar(source, destination);
 	}
 }

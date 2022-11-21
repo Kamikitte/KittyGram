@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace Api.Services
 {
-    public class AuthService
+	public class AuthService
 	{
 		private readonly DataContext _context;
 		private readonly AuthConfig _config;
@@ -76,7 +76,7 @@ namespace Api.Services
 				throw new SecurityTokenException("invalid token");
 			}
 		}
-		
+
 		public async Task<UserSession> GetSessionById(Guid id)
 		{
 			var session = await _context.UserSessions.FirstOrDefaultAsync(x => x.Id == id);
@@ -98,7 +98,7 @@ namespace Api.Services
 
 			return user;
 		}
-		
+
 		private TokenModel GenerateTokens(UserSession session)
 		{
 			var dtNow = DateTime.Now;

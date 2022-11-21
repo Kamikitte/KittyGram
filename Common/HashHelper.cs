@@ -7,7 +7,7 @@ namespace Common
 	{
 		public static string GetHash(string input)
 		{
-			using(var sha = SHA256.Create())
+			using (var sha = SHA256.Create())
 			{
 				var data = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
 

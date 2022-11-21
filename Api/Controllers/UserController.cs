@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    [Route("api/[controller]/[action]")]
+	[Route("api/[controller]/[action]")]
 	[ApiController]
 	[ApiExplorerSettings(GroupName = "Api")]
 	[Authorize]
@@ -35,7 +35,7 @@ namespace Api.Controllers
 				var path = _attachService.SaveMetaToAttaches(model);
 
 				await _userService.AddAvatarToUser(userId, model, path);
-				
+
 			}
 			else
 				throw new Exception("you are not authorized");
@@ -57,7 +57,7 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		public async Task<UserAvatarModel> GetUserById(Guid userId) => 
+		public async Task<UserAvatarModel> GetUserById(Guid userId) =>
 			await _userService.GetUser(userId);
 	}
 }

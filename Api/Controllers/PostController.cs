@@ -40,17 +40,17 @@ namespace Api.Controllers
 					throw new Exception("not authorized");
 				request.AuthorId = userId;
 			}
-			await _postService.CreatePost(request);			
+			await _postService.CreatePost(request);
 		}
 
 		[HttpGet]
-		public async Task<PostModel> GetPostById(Guid postId) => 
+		public async Task<PostModel> GetPostById(Guid postId) =>
 			await _postService.GetPostById(postId);
 
 		[HttpGet]
-		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) => 
+		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) =>
 			await _postService.GetPosts(skip, take);
-		
+
 		[HttpPost]
 		public async Task AddComment(CreateCommentRequest request)
 		{
@@ -70,7 +70,7 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) => 
+		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) =>
 			await _postService.GetCommentsFromPost(postId);
 	}
 }

@@ -10,6 +10,6 @@ namespace Api.Configs
 		public string Audience { get; set; } = string.Empty;
 		public string Key { get; set; } = string.Empty;
 		public int LifeTime { get; set; }
-		public SymmetricSecurityKey SymmetricSecurityKey() => new (Encoding.UTF8.GetBytes(Key));
+		public SymmetricSecurityKey SymmetricSecurityKey() => new(Encoding.UTF8.GetBytes(Key));
 	}
 }

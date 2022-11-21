@@ -9,7 +9,7 @@ namespace Common
 			try
 			{
 				var converter = TypeDescriptor.GetConverter(typeof(T));
-				if (converter != null && converter .ConvertFromString(input) is T result)
+				if (converter != null && converter.ConvertFromString(input) is T result)
 				{
 					return result;
 				}
