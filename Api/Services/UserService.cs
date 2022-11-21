@@ -1,4 +1,5 @@
-﻿using Api.Models.Attach;
+﻿using Api.Exceptions;
+using Api.Models.Attach;
 using Api.Models.User;
 using AutoMapper;
 using DAL;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services
 {
-    public class UserService
+	public class UserService
 	{
 		private readonly IMapper _mapper;
 		private readonly DataContext _context;
@@ -16,7 +17,7 @@ namespace Api.Services
 			_mapper = mapper;
 			_context = context;
 		}
-		
+
 		public async Task<Guid> CreateUser(CreateUserModel model)
 		{
 			var dbUser = _mapper.Map<User>(model);
@@ -24,7 +25,7 @@ namespace Api.Services
 			await _context.SaveChangesAsync();
 			return t.Entity.Id;
 		}
-		
+
 		public async Task<bool> CheckUserExist(string email)
 		{
 			return await _context.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
@@ -55,32 +56,33 @@ namespace Api.Services
 			return attach;
 		}
 
-		public async Task DeleteUser (Guid id)
+		public async Task DeleteUser(Guid id)
 		{
 			var dbUser = await GetUserById(id);
-			if(dbUser != null)
+			if (dbUser != null)
 			{
 				_context.Users.Remove(dbUser);
 				await _context.SaveChangesAsync();
 			}
 		}
-		
+
 		private async Task<User> GetUserById(Guid id)
 		{
-			var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
+			var user = await _context.Users.Include(x => x.Avatar).Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == id);
 			if (user == null || user == default)
-				throw new Exception("user not found");
-			
+				throw new UserNotFoundException();
+
 			return user;
 		}
 
 		public async Task<UserAvatarModel> GetUser(Guid id) =>
 			 _mapper.Map<User, UserAvatarModel>(await GetUserById(id));
-		
+
 		public async Task<IEnumerable<UserAvatarModel>> GetUsers() =>
 			(await _context.Users.AsNoTracking()
-			.Include(x=>x.Avatar)
-			.Select(x=> _mapper.Map<UserAvatarModel>(x))
+			.Include(x => x.Avatar)
+			.Include(x => x.Posts)
+			.Select(x => _mapper.Map<UserAvatarModel>(x))
 			.ToListAsync());
 	}
 }

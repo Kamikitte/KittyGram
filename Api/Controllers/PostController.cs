@@ -43,11 +43,13 @@ namespace Api.Controllers
 			await _postService.CreatePost(request);			
 		}
 
-		//[HttpGet]
-		//public async Task<PostModel> GetPost(Guid postId) => await _postService.GetPost(postId);
+		[HttpGet]
+		public async Task<PostModel> GetPostById(Guid postId) => 
+			await _postService.GetPostById(postId);
 
 		[HttpGet]
-		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) => await _postService.GetPosts(skip, take);
+		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) => 
+			await _postService.GetPosts(skip, take);
 		
 		[HttpPost]
 		public async Task AddComment(CreateCommentRequest request)
@@ -68,6 +70,7 @@ namespace Api.Controllers
 		}
 
 		[HttpGet]
-		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) => await _postService.GetCommentsFromPost(postId);
+		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) => 
+			await _postService.GetCommentsFromPost(postId);
 	}
 }

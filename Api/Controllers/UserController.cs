@@ -55,5 +55,9 @@ namespace Api.Controllers
 			else
 				throw new Exception("you are not authorized");
 		}
+
+		[HttpGet]
+		public async Task<UserAvatarModel> GetUserById(Guid userId) => 
+			await _userService.GetUser(userId);
 	}
 }

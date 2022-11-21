@@ -20,7 +20,9 @@ namespace Api.Mapper
 
             CreateMap<User, UserModel>();
 
-            CreateMap<User, UserAvatarModel>().AfterMap<UserAvatarMapperAction>();
+            CreateMap<User, UserAvatarModel>()
+                .ForMember(d=>d.PostsCount, m=>m.MapFrom(s=>s.Posts!.Count))
+                .AfterMap<UserAvatarMapperAction>();
 
             CreateMap<Avatar, AttachModel>();
 

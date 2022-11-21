@@ -1,4 +1,5 @@
-﻿using Api.Models.Attach;
+﻿using Api.Exceptions;
+using Api.Models.Attach;
 using Api.Models.Comment;
 using Api.Models.Post;
 using AutoMapper;
@@ -43,38 +44,29 @@ namespace Api.Services
 			await _context.Posts.AddAsync(dbModel);
 			await _context.SaveChangesAsync();
 		}
-		//public async Task<PostModel> GetPost(Guid postId)
-		//{
-		//	var post = await _context.Posts
-		//		.AsNoTracking()
-		//		.Include(x => x.PostContents)
-		//		.Include(x => x.Author).ThenInclude(x=>x.Avatar)
-		//		.FirstOrDefaultAsync(x => x.Id == postId);
-		//	if (post == null)
-		//	{
-		//		throw new Exception("post not found");
-		//	}
-		//	var result = new PostModel
-		//	{
-		//		Author = new UserAvatarModel(_mapper.Map<UserModel>(post.Author), post.Author.Avatar == null ? null : _linkAvatarGenerator),
-		//		Id = post.Id,
-		//		Description = post.Description,
-		//		Contents = post.PostContents.Select(x =>
-		//			new AttachExternalModel(_mapper.Map<AttachModel>(x), _linkContentGenerator)).ToList()
-		//	};
-		//	return result;
-		//}
-		public async Task<List<PostModel>> GetPosts(int skip, int take)
+		public async Task<PostModel> GetPostById(Guid postId)
 		{
-			var posts = await _context.Posts
+			var post = await _context.Posts
+				.AsNoTracking()
+				.Include(x => x.PostContents)
+				.Include(x => x.Author).ThenInclude(x => x.Avatar)
+				.Select(x => _mapper.Map<PostModel>(x))
+				.FirstOrDefaultAsync(x => x.Id == postId);
+
+			if (post == null)
+				throw new PostNotFoundException();
+			return post;
+		}
+
+		public async Task<List<PostModel>> GetPosts(int skip, int take) =>
+			await _context.Posts
 				.AsNoTracking()
 				.Include(x => x.PostContents)
 				.Include(x => x.Author).ThenInclude(x=> x.Avatar)
 				.OrderByDescending(x=>x.CreatingDate).Skip(skip).Take(take)
 				.Select(x => _mapper.Map<PostModel>(x))
-				.ToListAsync();			
-			return posts;
-		}				
+				.ToListAsync();
+
 		public async Task<AttachModel> GetPostContent(Guid postContentId)
 		{
 			var result = await _context.PostContents.FirstOrDefaultAsync(x => x.Id == postContentId);
