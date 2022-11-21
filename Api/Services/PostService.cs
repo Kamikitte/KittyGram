@@ -1,11 +1,9 @@
 ﻿using Api.Models.Attach;
 using Api.Models.Comment;
 using Api.Models.Post;
-using Api.Models.User;
 using AutoMapper;
 using DAL;
 using DAL.Entities;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services
@@ -13,18 +11,11 @@ namespace Api.Services
 	public class PostService
 	{
 		private readonly DataContext _context;
-		private Func<PostContent, string?>? _linkContentGenerator;
-		private Func<User, string?>? _linkAvatarGenerator;
 		private readonly IMapper _mapper;
 		public PostService(DataContext context, IMapper mapper)
 		{
 			_context = context;
 			_mapper = mapper;
-		}
-		public void SetLinkGenerator(Func<PostContent, string?> linkContentGenerator, Func<User, string?> linkAvatarGenerator)
-		{
-			_linkContentGenerator = linkContentGenerator;
-			_linkAvatarGenerator = linkAvatarGenerator;
 		}
 
 		public async Task CreatePost(CreatePostRequest request)
@@ -79,21 +70,10 @@ namespace Api.Services
 				.AsNoTracking()
 				.Include(x => x.PostContents)
 				.Include(x => x.Author).ThenInclude(x=> x.Avatar)
-				.OrderByDescending(x=>x.CreatingDate)
-				.Skip(skip)
-				.Take(take)				
-				.ToListAsync();
-			var result = posts.Select(post =>			
-				new PostModel
-				{
-					Author = _mapper.Map<User, UserAvatarModel>(post.Author, o=>o.AfterMap(FixAvatar)),
-					Description = post.Description,
-					Id = post.Id,
-					Contents = post.PostContents.Select(x => 
-						_mapper.Map<PostContent, AttachExternalModel>(x, o=>o.AfterMap(FixContent))).ToList()
-				}).ToList();
-			
-			return result;
+				.OrderByDescending(x=>x.CreatingDate).Skip(skip).Take(take)
+				.Select(x => _mapper.Map<PostModel>(x))
+				.ToListAsync();			
+			return posts;
 		}				
 		public async Task<AttachModel> GetPostContent(Guid postContentId)
 		{
@@ -111,15 +91,6 @@ namespace Api.Services
 			var dbComments = await _context.Comments.Where(x => x.PostId == postId).ToListAsync();
 			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>> (dbComments);
 			return commentsList;
-		}
-
-		private void FixAvatar(User s, UserAvatarModel d)
-		{
-			d.AvatarLink = s.Avatar == null ? null : _linkAvatarGenerator?.Invoke(s);
-		}
-		private void FixContent(PostContent s, AttachExternalModel d)
-		{
-			d.ContentLink = _linkContentGenerator?.Invoke(s);
-		}
+		}		
 	}
 }

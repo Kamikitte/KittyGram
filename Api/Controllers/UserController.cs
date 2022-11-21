@@ -10,20 +10,20 @@ namespace Api.Controllers
 {
     [Route("api/[controller]/[action]")]
 	[ApiController]
+	[ApiExplorerSettings(GroupName = "Api")]
 	[Authorize]
 	public class UserController : ControllerBase
 	{
 		private readonly UserService _userService;
 		private readonly AttachService _attachService;
-		public UserController(UserService userService, AttachService attachService)
+		public UserController(UserService userService, AttachService attachService, LinkGeneratorService links)
 		{
 			_userService = userService;
 			_attachService = attachService;
-			_userService.SetLinkGenerator(x =>
-			Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+			links.LinkContentGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
 			{
 				userId = x.Id
-			}));
+			});
 		}
 
 		[HttpPost]

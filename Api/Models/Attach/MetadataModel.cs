@@ -12,15 +12,5 @@
     {
         public string FilePath { get; set; } = null!;
 		public Guid AuthorId { get; set; }
-        //public MetaWithPath(MetadataModel model, Func<MetadataModel, string> pathGenerator, Guid authorId)
-        //{
-        //    TempId = model.TempId;
-        //    Name = model.Name;
-        //    MimeType = model.MimeType;
-        //    Size = model.Size;
-        //    FilePath = pathGenerator(model);
-        //    AuthorId = authorId;
-        //}
-
     }
 }

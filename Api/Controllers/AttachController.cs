@@ -9,6 +9,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]/[action]")]
 	[ApiController]
+	[ApiExplorerSettings(GroupName = "Api")]
 	[Authorize]
 	public class AttachController : ControllerBase
 	{

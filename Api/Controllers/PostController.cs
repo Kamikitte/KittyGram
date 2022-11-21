@@ -1,5 +1,4 @@
 ﻿using Api.Consts;
-using Api.Models.Attach;
 using Api.Models.Comment;
 using Api.Models.Post;
 using Api.Services;
@@ -11,25 +10,24 @@ namespace Api.Controllers
 {
 	[Route("api/[controller]/[action]")]
 	[ApiController]
+	[ApiExplorerSettings(GroupName = "Api")]
 	[Authorize]
 	public class PostController : ControllerBase
 	{
 		private readonly PostService _postService;
 		private readonly UserService _userService;
-		public PostController(PostService postService, UserService userService)
+		public PostController(PostService postService, UserService userService, LinkGeneratorService links)
 		{
 			_postService = postService;
 			_userService = userService;
-			_postService.SetLinkGenerator(linkAvatarGenerator: x =>
-				Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
-				{
-					userId = x.Id
-				}),
-				linkContentGenerator: x =>
-				Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
-				{
-					postContentId = x.Id
-				}));
+			links.LinkAvatarGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
+			{
+				userId = x.Id
+			});
+			links.LinkContentGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
+			{
+				postContentId = x.Id
+			});
 		}
 
 		[HttpPost]

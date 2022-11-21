@@ -1,7 +1,6 @@
 ﻿using Api.Models.Attach;
 using Api.Models.User;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using DAL;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +11,6 @@ namespace Api.Services
 	{
 		private readonly IMapper _mapper;
 		private readonly DataContext _context;
-		private Func<User, string?>? _linkGenerator;
-		public void SetLinkGenerator(Func<User, string?> linkGenerator)
-		{
-			_linkGenerator = linkGenerator;
-		}
 		public UserService(IMapper mapper, DataContext context)
 		{
 			_mapper = mapper;
@@ -81,16 +75,12 @@ namespace Api.Services
 		}
 
 		public async Task<UserAvatarModel> GetUser(Guid id) =>
-			 _mapper.Map<User, UserAvatarModel>(await GetUserById(id), o => o.AfterMap(FixAvatar));
+			 _mapper.Map<User, UserAvatarModel>(await GetUserById(id));
 		
 		public async Task<IEnumerable<UserAvatarModel>> GetUsers() =>
-			(await _context.Users.AsNoTracking().Include(x=>x.Avatar).ToListAsync())
-				.Select(x=> _mapper.Map<User, UserAvatarModel>(x, o => o.AfterMap(FixAvatar)));
-
-
-		private void FixAvatar(User s, UserAvatarModel d)
-		{
-			d.AvatarLink = s.Avatar == null ? null : _linkGenerator?.Invoke(s);
-		}
+			(await _context.Users.AsNoTracking()
+			.Include(x=>x.Avatar)
+			.Select(x=> _mapper.Map<UserAvatarModel>(x))
+			.ToListAsync());
 	}
 }

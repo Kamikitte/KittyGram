@@ -1,5 +1,4 @@
 ﻿using Api.Models.Attach;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Services
 {

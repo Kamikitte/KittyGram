@@ -1,7 +1,6 @@
 ﻿using Api.Configs;
 using Api.Consts;
 using Api.Models.Token;
-using AutoMapper;
 using Common;
 using DAL;
 using DAL.Entities;
@@ -15,13 +14,11 @@ namespace Api.Services
 {
     public class AuthService
 	{
-		private readonly IMapper _mapper;
-		private readonly DAL.DataContext _context;
+		private readonly DataContext _context;
 		private readonly AuthConfig _config;
 
-		public AuthService(IMapper mapper, IOptions<AuthConfig> config, DataContext context)
+		public AuthService(IOptions<AuthConfig> config, DataContext context)
 		{
-			_mapper = mapper;
 			_context = context;
 			_config = config.Value;
 		}
@@ -29,7 +26,7 @@ namespace Api.Services
 		public async Task<TokenModel> GetToken(string login, string password)
 		{
 			var user = await GetUserByCredention(login, password);
-			var session = await _context.UserSessions.AddAsync(new DAL.Entities.UserSession
+			var session = await _context.UserSessions.AddAsync(new UserSession
 			{
 				User = user,
 				RefreshToken = Guid.NewGuid(),

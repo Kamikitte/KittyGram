@@ -1,4 +1,3 @@
-using Api;
 using Api.Services;
 using Api.Configs;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DAL;
 using Api.Middlewares;
+using Api.Mapper;
 
 internal class Program
 {
@@ -14,7 +14,6 @@ internal class Program
 	{
 		var builder = WebApplication.CreateBuilder(args);
 
-		// Add services to the container.
 		var authSection = builder.Configuration.GetSection(AuthConfig.Position);
 		var authConfig = authSection.Get<AuthConfig>();
 
@@ -22,7 +21,6 @@ internal class Program
 
 		builder.Services.AddControllers();
 		
-		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen(c =>
 		{
@@ -51,13 +49,17 @@ internal class Program
 					new List<string>()
 				}
 			});
+
+			c.SwaggerDoc("Auth", new OpenApiInfo { Title = "Auth" });
+			c.SwaggerDoc("Api", new OpenApiInfo { Title = "Api" });
 		});
 
 		builder.Services.AddAutoMapper(typeof(MapperProile).Assembly);
 		builder.Services.AddScoped<UserService>();
 		builder.Services.AddScoped<AuthService>();
+		builder.Services.AddScoped<LinkGeneratorService>();
 		builder.Services.AddTransient<AttachService>();
-		builder.Services.AddTransient<PostService>();
+		builder.Services.AddScoped<PostService>();
 
 		builder.Services.AddAuthentication(o =>	
 		{
@@ -102,11 +104,15 @@ internal class Program
 				context.Database.Migrate();
 			}
 		}
-		// Configure the HTTP request pipeline.
+
 		//if (app.Environment.IsDevelopment())
 		{
 			app.UseSwagger();
-			app.UseSwaggerUI();
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("Api/swagger.json", "Api");
+				c.SwaggerEndpoint("Auth/swagger.json", "Auth");
+			});
 		}
 
 		app.UseHttpsRedirection();
