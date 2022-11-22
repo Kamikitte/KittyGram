@@ -1,5 +1,6 @@
 ﻿using Api.Consts;
 using Api.Models.Comment;
+using Api.Models.Like;
 using Api.Models.Post;
 using Api.Services;
 using Common.Extensions;
@@ -72,5 +73,58 @@ namespace Api.Controllers
 		[HttpGet]
 		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) =>
 			await _postService.GetCommentsFromPost(postId);
+
+		[HttpPost]
+		public async Task AddLikeToPost(Guid postId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("not authorized");
+			var model = new LikePostRequestModel
+			{
+				LikerId = userId,
+				PostId = postId
+			};
+			await _postService.AddLikeToPost(model);
+		}
+		[HttpPost]
+		public async Task RemoveLikeFromPost(Guid postId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("not authorized");
+			var model = new LikePostRequestModel
+			{
+				LikerId = userId,
+				PostId = postId
+			};
+			await _postService.RemoveLikeFromPost(model);
+		}
+		[HttpPost]
+		public async Task AddLikeToComment(Guid postId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("not authorized");
+			var model = new LikeCommentRequestModel
+			{
+				LikerId = userId,
+				CommentId = postId
+			};
+			await _postService.AddLikeToComment(model);
+		}
+		[HttpPost]
+		public async Task RemoveLikeFromComment(Guid postId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("not authorized");
+			var model = new LikeCommentRequestModel
+			{
+				LikerId = userId,
+				CommentId = postId
+			};
+			await _postService.RemoveLikeFromComment(model);
+		}
 	}
 }

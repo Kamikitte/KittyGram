@@ -7,5 +7,7 @@
 		public Guid PostId { get; set; }
 		public DateTimeOffset CreatingDate { get; set; }
 		public string Text { get; set; } = null!;
+
+		public virtual ICollection<LikeComment>? Likes { get; set; }
 	}
 }

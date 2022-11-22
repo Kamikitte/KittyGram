@@ -62,7 +62,7 @@ internal class Program
 		builder.Services.AddInMemoryRateLimiting();
 		builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-		builder.Services.AddAutoMapper(typeof(MapperProile).Assembly);
+		builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 		builder.Services.AddScoped<UserService>();
 		builder.Services.AddScoped<AuthService>();
 		builder.Services.AddScoped<LinkGeneratorService>();
@@ -125,7 +125,6 @@ internal class Program
 
 		app.UseHttpsRedirection();
 
-		app.UseAntiDoSCustom();
 		app.UseAuthentication();
 
 		app.UseClientRateLimiting();

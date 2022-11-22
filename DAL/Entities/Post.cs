@@ -7,7 +7,9 @@
 		public Guid AuthorId { get; set; }
 		public string? Description { get; set; }
 		public DateTimeOffset CreatingDate { get; set; }
-		public virtual ICollection<Comment>? Comments { get; set; }
+		
 		public virtual User Author { get; set; } = null!;
+		public virtual ICollection<Comment>? Comments { get; set; }
+		public virtual ICollection<LikePost>? Likes { get; set; }
 	}
 }

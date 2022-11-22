@@ -1,6 +1,7 @@
 ﻿using Api.Exceptions;
 using Api.Models.Attach;
 using Api.Models.Comment;
+using Api.Models.Like;
 using Api.Models.Post;
 using AutoMapper;
 using DAL;
@@ -47,14 +48,16 @@ namespace Api.Services
 		public async Task<PostModel> GetPostById(Guid postId)
 		{
 			var post = await _context.Posts
-				.AsNoTracking()
-				.Include(x => x.PostContents)
 				.Include(x => x.Author).ThenInclude(x => x.Avatar)
+				.Include(x => x.PostContents)
+				.Include(x=>x.Comments)
+				.Include(x => x.Likes).AsNoTracking()
+				.Where(x => x.Id == postId)
 				.Select(x => _mapper.Map<PostModel>(x))
-				.FirstOrDefaultAsync(x => x.Id == postId);
-
+				.FirstOrDefaultAsync();
 			if (post == null)
 				throw new PostNotFoundException();
+			var test = await _context.Posts.Include(x => x.Likes).FirstOrDefaultAsync(x => x.Id == postId);
 			return post;
 		}
 
@@ -83,6 +86,38 @@ namespace Api.Services
 			var dbComments = await _context.Comments.Where(x => x.PostId == postId).ToListAsync();
 			var commentsList = _mapper.Map<List<Comment>, List<CommentModel>>(dbComments);
 			return commentsList;
+		}
+
+		public async Task AddLikeToPost(LikePostRequestModel model)
+		{
+			var like = _mapper.Map<LikePost>(model);
+			await _context.LikesPost.AddAsync(like);
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task RemoveLikeFromPost(LikePostRequestModel model)
+		{
+			var like = await _context.LikesPost.FirstOrDefaultAsync(x => x.LikerId == model.LikerId && x.PostId == model.PostId);
+			if (like == null)
+				throw new Exception("Like is not here");
+			_context.LikesPost.Remove(like);
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task AddLikeToComment(LikeCommentRequestModel model)
+		{
+			var like = _mapper.Map<LikeComment>(model);
+			await _context.LikesComment.AddAsync(like);
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task RemoveLikeFromComment(LikeCommentRequestModel model)
+		{
+			var like = await _context.LikesComment.FirstOrDefaultAsync(x => x.LikerId == model.LikerId && x.CommentId == model.CommentId);
+			if (like == null)
+				throw new Exception("Like is not here");
+			_context.LikesComment.Remove(like);
+			await _context.SaveChangesAsync();
 		}
 	}
 }

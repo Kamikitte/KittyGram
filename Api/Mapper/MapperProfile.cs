@@ -1,6 +1,7 @@
 ﻿using Api.Mapper.MapperActions;
 using Api.Models.Attach;
 using Api.Models.Comment;
+using Api.Models.Like;
 using Api.Models.Post;
 using Api.Models.User;
 using AutoMapper;
@@ -9,9 +10,9 @@ using DAL.Entities;
 
 namespace Api.Mapper
 {
-	public class MapperProile : Profile
+	public class MapperProfile : Profile
 	{
-		public MapperProile()
+		public MapperProfile()
 		{
 			CreateMap<CreateUserModel, User>()
 				.ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
@@ -31,7 +32,8 @@ namespace Api.Mapper
 			CreateMap<PostContent, AttachExternalModel>().AfterMap<PostContentMapperAction>();
 
 			CreateMap<Post, PostModel>()
-				.ForMember(d => d.Contents, m => m.MapFrom(d => d.PostContents));
+				.ForMember(d => d.Contents, m => m.MapFrom(d => d.PostContents))
+				.ForMember(d => d.LikesCount, m => m.MapFrom(s => s.Likes!.Count));
 
 			CreateMap<CreatePostRequest, CreatePostModel>();
 
@@ -47,7 +49,14 @@ namespace Api.Mapper
 				.ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
 				.ForMember(d => d.CreatingDate, m => m.MapFrom(s => DateTime.UtcNow));
 
-			CreateMap<Comment, CommentModel>();
+			CreateMap<Comment, CommentModel>()
+				.ForMember(d => d.LikesCount, m => m.MapFrom(s => s.Likes!.Count));
+
+			CreateMap<LikePostRequestModel, LikePost>()
+				.ForMember(d => d.CreateTime, m => m.MapFrom(s => DateTime.UtcNow));
+
+			CreateMap<LikeCommentRequestModel, LikeComment>()
+				.ForMember(d => d.CreateTime, m => m.MapFrom(s => DateTime.UtcNow));
 		}
 	}
 }
