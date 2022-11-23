@@ -1,5 +1,6 @@
 ﻿using Api.Consts;
 using Api.Models.Attach;
+using Api.Models.Subscription;
 using Api.Models.User;
 using Api.Services;
 using Common.Extensions;
@@ -48,16 +49,49 @@ namespace Api.Controllers
 		public async Task<UserAvatarModel> GetCurrentUser()
 		{
 			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId != default)
-			{
-				return await _userService.GetUser(userId);
-			}
-			else
+			if (userId == default)
 				throw new Exception("you are not authorized");
+			return await _userService.GetUser(userId);
 		}
 
 		[HttpGet]
 		public async Task<UserAvatarModel> GetUserById(Guid userId) =>
 			await _userService.GetUser(userId);
+
+		[HttpPost]
+		public async Task SubscribeToUser(Guid publisherId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("you are not authorized");
+			var model = new SubscriptionModel
+			{
+				PublisherId = publisherId,
+				SubscriberId = userId
+			};
+			await _userService.SubscribeToUser(model);
+		}
+
+		[HttpPost]
+		public async Task UnsubscribeFromUser(Guid publisherId)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("you are not authorized");
+			var model = new SubscriptionModel
+			{
+				PublisherId = publisherId,
+				SubscriberId = userId
+			};
+			await _userService.UnsubscribeFromUser(model);
+		}
+
+		[HttpGet]
+		public async Task<IEnumerable<UserAvatarModel>> GetSubscribers(Guid userId) =>
+			await _userService.GetSubscribers(userId);
+
+		[HttpGet]
+		public async Task<IEnumerable<UserAvatarModel>> GetPublishers(Guid userId) =>
+			await _userService.GetPublishers(userId);
 	}
 }

@@ -5,7 +5,7 @@ using DAL.Entities;
 
 namespace Api.Mapper.MapperActions
 {
-	public class UserAvatarMapperAction : IMappingAction<User, UserAvatarModel>
+    public class UserAvatarMapperAction : IMappingAction<User, UserAvatarModel>
 	{
 		private LinkGeneratorService _links;
 		public UserAvatarMapperAction(LinkGeneratorService linkGeneratorService)

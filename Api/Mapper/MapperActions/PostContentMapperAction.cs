@@ -5,7 +5,7 @@ using DAL.Entities;
 
 namespace Api.Mapper.MapperActions
 {
-	public class PostContentMapperAction : IMappingAction<PostContent, AttachExternalModel>
+    public class PostContentMapperAction : IMappingAction<PostContent, AttachExternalModel>
 	{
 		private LinkGeneratorService _links;
 		public PostContentMapperAction(LinkGeneratorService linkGeneratorService)

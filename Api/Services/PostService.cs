@@ -7,10 +7,11 @@ using AutoMapper;
 using DAL;
 using DAL.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Api.Services
 {
-	public class PostService
+    public class PostService
 	{
 		private readonly DataContext _context;
 		private readonly IMapper _mapper;
@@ -88,6 +89,7 @@ namespace Api.Services
 			return commentsList;
 		}
 
+		//TODO перенести лайки в отдельный контроллер
 		public async Task AddLikeToPost(LikePostRequestModel model)
 		{
 			var like = _mapper.Map<LikePost>(model);
@@ -118,6 +120,27 @@ namespace Api.Services
 				throw new Exception("Like is not here");
 			_context.LikesComment.Remove(like);
 			await _context.SaveChangesAsync();
+		}
+
+		public async Task<List<PostModel>> GetFeed(int skip, int take, Guid userId)
+		{
+			var publishers = (await _context.Users
+				.Include(x => x.Publishers)
+				.FirstOrDefaultAsync(x => x.Id == userId))?
+				.Publishers;
+			var publishersId = new List<Guid>();
+			foreach(var publisher in publishers)
+				publishersId.Add(publisher.Id);
+
+			var test = await _context.Posts
+				.AsNoTracking()
+				.Include(x => x.PostContents)
+				.Include(x => x.Author).ThenInclude(x => x.Avatar)
+				.Where(x => publishersId.Contains(x.Id))
+				.OrderByDescending(x => x.CreatingDate).Skip(skip).Take(take)
+				.Select(x => _mapper.Map<PostModel>(x))
+				.ToListAsync();
+			return test;
 		}
 	}
 }

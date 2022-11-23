@@ -20,9 +20,15 @@ namespace DAL
 			//Использовано TPH, так как при TPT не удалось создать двойной уникальный индекс,
 			//состоящий из юзера в таблице Likes и поста/коммента с таблиц LikesPost и LikesComment
 			//modelBuilder.Entity<LikePost>().ToTable(nameof(LikesPost));
-			modelBuilder.Entity<LikePost>().HasIndex(c => new {c.LikerId, c.PostId}).IsUnique();
+			modelBuilder.Entity<LikePost>().HasIndex(c => new { c.LikerId, c.PostId }).IsUnique();
 			//modelBuilder.Entity<LikeComment>().ToTable(nameof(LikesComment));
 			modelBuilder.Entity<LikeComment>().HasIndex(c => new { c.LikerId, c.CommentId }).IsUnique();
+
+			//TODO: сообразить связь m:m 
+			modelBuilder.Entity<User>()
+				.HasMany(c => c.Subscribers)
+				.WithMany(s => s.Publishers)
+				.UsingEntity(j => j.ToTable("Subscriptions"));
 		}
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

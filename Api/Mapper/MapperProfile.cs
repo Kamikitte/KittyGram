@@ -10,7 +10,7 @@ using DAL.Entities;
 
 namespace Api.Mapper
 {
-	public class MapperProfile : Profile
+    public class MapperProfile : Profile
 	{
 		public MapperProfile()
 		{

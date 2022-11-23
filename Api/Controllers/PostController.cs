@@ -31,6 +31,7 @@ namespace Api.Controllers
 			});
 		}
 
+		//TODO сделать проверку вводимого вручную юзера
 		[HttpPost]
 		public async Task CreatePost(CreatePostRequest request)
 		{
@@ -51,6 +52,15 @@ namespace Api.Controllers
 		[HttpGet]
 		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) =>
 			await _postService.GetPosts(skip, take);
+
+		[HttpGet]
+		public async Task<List<PostModel>> GetFeed(int skip = 0, int take = 10)
+		{
+			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+			if (userId == default)
+				throw new Exception("not authorized");
+			return await _postService.GetFeed(skip, take, userId);
+		}
 
 		[HttpPost]
 		public async Task AddComment(CreateCommentRequest request)
