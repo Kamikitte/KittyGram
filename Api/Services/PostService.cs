@@ -132,15 +132,14 @@ namespace Api.Services
 			foreach(var publisher in publishers)
 				publishersId.Add(publisher.Id);
 
-			var test = await _context.Posts
+			return await _context.Posts
 				.AsNoTracking()
 				.Include(x => x.PostContents)
 				.Include(x => x.Author).ThenInclude(x => x.Avatar)
-				.Where(x => publishersId.Contains(x.Id))
+				.Where(x => publishersId.Contains(x.AuthorId))
 				.OrderByDescending(x => x.CreatingDate).Skip(skip).Take(take)
 				.Select(x => _mapper.Map<PostModel>(x))
 				.ToListAsync();
-			return test;
 		}
 	}
 }
