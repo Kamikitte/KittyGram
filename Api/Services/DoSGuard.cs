@@ -1,33 +1,36 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 
-namespace Api.Services
+namespace Api.Services;
+
+public sealed class TooManyRequestsException : Exception;
+
+public class DoSGuard
 {
-	public class TooManyRequestsException : Exception { }
-	public class DoSGuard
-	{
-		public ConcurrentDictionary<string, int> RequestControlDict { get; set; } = new ConcurrentDictionary<string, int>();
-		public void CheckRequest(string? token)
-		{
-			if (token == null)
-				return;
+    public ConcurrentDictionary<string, int> RequestControlDict { get; set; } = new();
 
-			var dtn = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
+    public void CheckRequest(string? token)
+    {
+        if (token == null)
+        {
+            return;
+        }
 
-			var key = $"{token}_{dtn}";
+        var dtn = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
 
-			if (RequestControlDict.ContainsKey(key))
-			{
+        var key = $"{token}_{dtn}";
 
-				var requests = RequestControlDict.TryGetValue(key, out var t) ? t : 0;
-				if (requests > 10)
-				{
-					throw new TooManyRequestsException();
-				}
-				var newRequest = requests + 1;
-				RequestControlDict.TryUpdate(key, newRequest, requests);
-			}
-			RequestControlDict.TryAdd(key, 0);
-		}
-	}
+        if (RequestControlDict.ContainsKey(key))
+        {
+            var requests = RequestControlDict.TryGetValue(key, out var t) ? t : 0;
+            if (requests > 10)
+            {
+                throw new TooManyRequestsException();
+            }
+
+            var newRequest = requests + 1;
+            RequestControlDict.TryUpdate(key, newRequest, requests);
+        }
+
+        RequestControlDict.TryAdd(key, 0);
+    }
 }

@@ -1,8 +1,8 @@
-﻿namespace DAL.Entities
+﻿namespace DAL.Entities;
+
+public class PostContent : Attach
 {
-	public class PostContent : Attach
-	{
-		public Guid PostId { get; set; }
-		public virtual Post Post { get; set; } = null!;
-	}
+	public Guid PostId { get; set; }
+	
+	public virtual Post Post { get; set; } = null!;
 }

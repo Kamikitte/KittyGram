@@ -1,7 +1,6 @@
-﻿namespace DAL.Entities
+﻿namespace DAL.Entities;
+
+public sealed class LikePost : Like
 {
-	public class LikePost : Like
-	{
-		public Guid PostId { get; set; }
-	}
+	public Guid PostId { get; set; }
 }

@@ -1,140 +1,167 @@
-﻿using Api.Consts;
-using Api.Models.Comment;
+﻿using Api.Models.Comment;
 using Api.Models.Like;
 using Api.Models.Post;
 using Api.Services;
+using Common.Constants;
 using Common.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers
+namespace Api.Controllers;
+
+[Route("api/[controller]/[action]")]
+[ApiController]
+[ApiExplorerSettings(GroupName = "Api")]
+[Authorize]
+public class PostController : ControllerBase
 {
-	[Route("api/[controller]/[action]")]
-	[ApiController]
-	[ApiExplorerSettings(GroupName = "Api")]
-	[Authorize]
-	public class PostController : ControllerBase
-	{
-		private readonly PostService _postService;
-		private readonly UserService _userService;
-		public PostController(PostService postService, UserService userService, LinkGeneratorService links)
-		{
-			_postService = postService;
-			_userService = userService;
-			links.LinkAvatarGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar), new
-			{
-				userId = x.Id
-			});
-			links.LinkContentGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostContent), new
-			{
-				postContentId = x.Id
-			});
-		}
+    private readonly PostService postService;
 
-		//TODO сделать проверку вводимого вручную юзера
-		[HttpPost]
-		public async Task CreatePost(CreatePostRequest request)
-		{
-			if (!request.AuthorId.HasValue)
-			{
-				var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-				if (userId == default)
-					throw new Exception("not authorized");
-				request.AuthorId = userId;
-			}
-			await _postService.CreatePost(request);
-		}
+    public PostController(PostService postService, LinkGeneratorService links)
+    {
+        this.postService = postService;
+        links.LinkAvatarGenerator = x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatar),
+            new
+            {
+                userId = x.Id,
+            });
+        links.LinkContentGenerator = x => Url.ControllerAction<AttachController>(
+            nameof(AttachController.GetPostContent), new
+            {
+                postContentId = x.Id,
+            });
+    }
 
-		[HttpGet]
-		public async Task<PostModel> GetPostById(Guid postId) =>
-			await _postService.GetPostById(postId);
+    //TODO сделать проверку вводимого вручную юзера
+    [HttpPost]
+    public Task CreatePost(CreatePostRequest request)
+    {
+        if (request.AuthorId.HasValue)
+        {
+            return postService.CreatePost(request);
+        }
 
-		[HttpGet]
-		public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) =>
-			await _postService.GetPosts(skip, take);
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
 
-		[HttpGet]
-		public async Task<List<PostModel>> GetFeed(int skip = 0, int take = 10)
-		{
-			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId == default)
-				throw new Exception("not authorized");
-			return await _postService.GetFeed(skip, take, userId);
-		}
+        request.AuthorId = userId;
 
-		[HttpPost]
-		public async Task AddComment(CreateCommentRequest request)
-		{
-			var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-			if (Guid.TryParse(userIdString, out var userId))
-			{
-				var model = new CreateCommentModel
-				{
-					AuthorId = userId,
-					PostId = request.PostId,
-					Text = request.Text
-				};
-				await _postService.AddComment(model);
-			}
-			else
-				throw new Exception("you are not authorized");
-		}
+        return postService.CreatePost(request);
+    }
 
-		[HttpGet]
-		public async Task<List<CommentModel>> GetCommentsFromPost(Guid postId) =>
-			await _postService.GetCommentsFromPost(postId);
+    [HttpGet]
+    public Task<PostModel> GetPostById(Guid postId) => postService.GetPostById(postId);
 
-		[HttpPost]
-		public async Task AddLikeToPost(Guid postId)
-		{
-			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId == default)
-				throw new Exception("not authorized");
-			var model = new LikePostRequestModel
-			{
-				LikerId = userId,
-				PostId = postId
-			};
-			await _postService.AddLikeToPost(model);
-		}
-		[HttpPost]
-		public async Task RemoveLikeFromPost(Guid postId)
-		{
-			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId == default)
-				throw new Exception("not authorized");
-			var model = new LikePostRequestModel
-			{
-				LikerId = userId,
-				PostId = postId
-			};
-			await _postService.RemoveLikeFromPost(model);
-		}
-		[HttpPost]
-		public async Task AddLikeToComment(Guid postId)
-		{
-			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId == default)
-				throw new Exception("not authorized");
-			var model = new LikeCommentRequestModel
-			{
-				LikerId = userId,
-				CommentId = postId
-			};
-			await _postService.AddLikeToComment(model);
-		}
-		[HttpPost]
-		public async Task RemoveLikeFromComment(Guid postId)
-		{
-			var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
-			if (userId == default)
-				throw new Exception("not authorized");
-			var model = new LikeCommentRequestModel
-			{
-				LikerId = userId,
-				CommentId = postId
-			};
-			await _postService.RemoveLikeFromComment(model);
-		}
-	}
+    [HttpGet]
+    public Task<List<PostModel>> GetPosts(int skip = 0, int take = 10) => postService.GetPosts(skip, take);
+
+    [HttpGet]
+    public Task<List<PostModel>> GetFeed(int skip = 0, int take = 10)
+    {
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
+
+        return postService.GetFeed(skip, take, userId);
+    }
+
+    [HttpPost]
+    public Task AddComment(CreateCommentRequest request)
+    {
+        var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+        if (!Guid.TryParse(userIdString, out var userId))
+        {
+            throw new Exception("you are not authorized");
+        }
+
+        var model = new CreateCommentModel
+        {
+            AuthorId = userId,
+            PostId = request.PostId,
+            Text = request.Text,
+        };
+
+        return postService.AddComment(model);
+    }
+
+    [HttpGet]
+    public Task<List<CommentModel>> GetCommentsFromPost(Guid postId) =>
+        postService.GetCommentsFromPost(postId);
+
+    [HttpPost]
+    public Task AddLikeToPost(Guid postId)
+    {
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
+
+        var model = new LikePostRequestModel
+        {
+            LikerId = userId,
+            PostId = postId,
+        };
+
+        return postService.AddLikeToPost(model);
+    }
+
+    [HttpPost]
+    public Task RemoveLikeFromPost(Guid postId)
+    {
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
+
+        var model = new LikePostRequestModel
+        {
+            LikerId = userId,
+            PostId = postId,
+        };
+
+        return postService.RemoveLikeFromPost(model);
+    }
+
+    [HttpPost]
+    public Task AddLikeToComment(Guid postId)
+    {
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
+
+        var model = new LikeCommentRequestModel
+        {
+            LikerId = userId,
+            CommentId = postId,
+        };
+
+        return postService.AddLikeToComment(model);
+    }
+
+    [HttpPost]
+    public Task RemoveLikeFromComment(Guid postId)
+    {
+        var userId = User.GetClaimValue<Guid>(ClaimNames.Id);
+        if (userId == Guid.Empty)
+        {
+            throw new Exception("not authorized");
+        }
+
+        var model = new LikeCommentRequestModel
+        {
+            LikerId = userId,
+            CommentId = postId,
+        };
+
+        return postService.RemoveLikeFromComment(model);
+    }
 }
